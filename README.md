@@ -204,6 +204,3 @@ SIPaKMeD processing uses full-field images with contour `.dat` files. The code m
 | State-dictionary mismatch | Match the checkpoint to its exact model constructor and package version |
 | External archive extraction error | Provide `7z` or install `py7zr` |
 
-## Citation and license
-
-A manuscript title, author list, DOI, and repository license are not included in the supplied archive. Add the verified manuscript citation when available and include the intended `LICENSE` file before public distribution. This README does not assign a license or infer publication status.
