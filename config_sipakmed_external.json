@@ -1,0 +1,34 @@
+{
+  "ROOT": "/content/gdrive/MyDrive/Edward/cervical",
+  "RESULTS_DIR": "/content/gdrive/MyDrive/Edward/cervical/results_q1_proposed",
+  "EXTERNAL_DATA_ENV": "CERVIX_SPK_DRIVE",
+  "EXTERNAL_DATA_DEFAULT": "/content/gdrive/MyDrive/Edward/external/SIPaKMeD_full",
+  "LOCAL_DIR_COLAB": "/content/spk",
+  "LOCAL_DIR_OTHER": "/tmp/spk",
+  "PER_CLASS": 1000,
+  "IMG_H": 384,
+  "IMG_W": 512,
+  "SEED": 42,
+  "N_BOOT": 1000,
+  "CLASSES": [
+    "Superficial-Intermediate",
+    "Parabasal",
+    "Metaplastic",
+    "Koilocytotic",
+    "Dyskeratotic"
+  ],
+  "ABNORMAL_CLASSES": [
+    "Koilocytotic",
+    "Dyskeratotic"
+  ],
+  "MODELS": {
+    "MTA-TransUNet (ours)": "w_o_scSE_attention",
+    "SegFormer": "SegFormer__MiT_B2",
+    "U-Net++": "U_Net____R34"
+  },
+  "TTA": [
+    "original",
+    "horizontal_flip",
+    "vertical_flip"
+  ]
+}

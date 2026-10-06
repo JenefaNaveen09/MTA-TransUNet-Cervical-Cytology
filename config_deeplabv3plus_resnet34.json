@@ -1,0 +1,29 @@
+{
+  "DATA_ROOT": "/content/gdrive/MyDrive/Edward/cervical",
+  "SPLITS": [
+    "train",
+    "valid",
+    "test"
+  ],
+  "LONG_SIDE": 512,
+  "BATCH_SIZE": 8,
+  "EPOCHS": 60,
+  "LR": 0.0003,
+  "WEIGHT_DECAY": 0.0001,
+  "WARMUP_EPOCHS": 3,
+  "PATIENCE": 15,
+  "SEED": 42,
+  "NUM_WORKERS": 2,
+  "USE_CLAHE": true,
+  "TTA": true,
+  "ENCODER_WEIGHTS": "imagenet",
+  "W_CE": 1.0,
+  "W_DICE": 1.0,
+  "N_BOOT": 2000,
+  "PIXELS_PER_IMAGE": 20000,
+  "RESUME": true,
+  "OUT_DIR": "/content/gdrive/MyDrive/Edward/cervical/results_q1",
+  "MODELS": [
+    "DeepLabV3+ (ResNet-34)"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "DATA_ROOT": "/content/gdrive/MyDrive/Edward/cervical",
+  "SPLITS": [
+    "train",
+    "valid",
+    "test"
+  ],
+  "LONG_SIDE": 128,
+  "BATCH_SIZE": 4,
+  "EPOCHS": 3,
+  "LR": 0.0003,
+  "WEIGHT_DECAY": 0.0001,
+  "WARMUP_EPOCHS": 1,
+  "PATIENCE": 5,
+  "SEED": 42,
+  "NUM_WORKERS": 0,
+  "USE_CLAHE": true,
+  "TTA": true,
+  "ENCODER_WEIGHTS": null,
+  "W_CE": 1.0,
+  "W_DICE": 1.0,
+  "N_BOOT": 200,
+  "PIXELS_PER_IMAGE": 2000,
+  "RESUME": false,
+  "OUT_DIR": "/content/gdrive/MyDrive/Edward/cervical/results_q1",
+  "MODELS": [
+    "U-Net (ResNet-34)"
+  ]
+}

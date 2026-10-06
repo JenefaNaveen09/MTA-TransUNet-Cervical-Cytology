@@ -1,0 +1,40 @@
+{
+  "ROOT": "/content/gdrive/MyDrive/Edward/cervical",
+  "RESULTS_DIR": "/content/gdrive/MyDrive/Edward/cervical/results_q1_proposed",
+  "EXTERNAL_DATA_ENV": "CERVIX_MEN_DRIVE",
+  "EXTERNAL_DATA_DEFAULT": "/content/gdrive/MyDrive/Edward/Mendeley-dataset",
+  "LOCAL_DIR_COLAB": "/content/men",
+  "LOCAL_DIR_OTHER": "/tmp/men",
+  "IMG_H": 384,
+  "IMG_W": 512,
+  "SEED": 42,
+  "N_BOOT": 1000,
+  "HAM": 6,
+  "MODELS": {
+    "MTA-TransUNet (ours)": "w_o_scSE_attention",
+    "SegFormer": "SegFormer__MiT_B2",
+    "U-Net++": "U_Net____R34"
+  },
+  "TTA": [
+    "original",
+    "horizontal_flip",
+    "vertical_flip"
+  ],
+  "NORMALIZATION_MEAN": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "NORMALIZATION_STD": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "CLAHE": {
+    "clip_limit": 2.0,
+    "tile_grid_size": [
+      8,
+      8
+    ]
+  }
+}
