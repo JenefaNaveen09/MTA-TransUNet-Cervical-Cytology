@@ -1,0 +1,30 @@
+{
+  "_comment": "Settings of the reported runs (notebook cell 1). Load with CERVIX_CONFIG=configs/default.json. DATA_ROOT comes from CERVIX_ROOT.",
+  "SPLITS": [
+    "train",
+    "valid",
+    "test"
+  ],
+  "LONG_SIDE": 512,
+  "BATCH_SIZE": 8,
+  "EPOCHS": 40,
+  "LR": 0.0003,
+  "WEIGHT_DECAY": 0.0001,
+  "WARMUP_EPOCHS": 3,
+  "PATIENCE": 10,
+  "SEED": 42,
+  "NUM_WORKERS": 2,
+  "USE_CLAHE": true,
+  "TTA": true,
+  "ENCODER_WEIGHTS": "imagenet",
+  "HED_AUG": true,
+  "W_AUX": 0.2,
+  "W_CE": 1.0,
+  "W_DICE": 1.0,
+  "RUN_ABLATION": true,
+  "RUN_ROBUSTNESS": true,
+  "RUN_LBC_ORIGINAL": false,
+  "N_BOOT": 2000,
+  "PIXELS_PER_IMAGE": 20000,
+  "RESUME": true
+}

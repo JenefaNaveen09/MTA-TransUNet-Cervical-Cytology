@@ -1,0 +1,106 @@
+{
+  "_comment": "Sources and expected counts; scripts/verify_data.py checks a local copy against these.",
+  "cric": {
+    "role": "training, validation, internal test",
+    "original": {
+      "name": "CRIC Cervix (CRIC Searchable Image Database)",
+      "url": "https://database.cric.com.br",
+      "article_doi": "10.1038/s41597-021-00933-8",
+      "figshare_collection": 4960286,
+      "published_images": 400
+    },
+    "export": {
+      "name": "Cervical Cancer 400 Image Cric",
+      "publisher": "Lab 03 AI Center (Roboflow Universe)",
+      "version": 1,
+      "license": "CC BY 4.0",
+      "format": "COCO JSON",
+      "url": "https://universe.roboflow.com/lab-03-ai-center-ev3hu/cervical-cancer-400-image-cric/dataset/1",
+      "preprocessing": "auto-orient, stretch to 1376 x 1020",
+      "augmentation": "none"
+    },
+    "image_size_wh": [
+      1376,
+      1020
+    ],
+    "distinct_filename_stems": 397,
+    "splits": {
+      "train": {
+        "images": 147,
+        "normal": 2725,
+        "abnormal": 1508
+      },
+      "valid": {
+        "images": 148,
+        "normal": 2384,
+        "abnormal": 2198
+      },
+      "test": {
+        "images": 104,
+        "normal": 1739,
+        "abnormal": 1020
+      }
+    },
+    "class_mapping": {
+      "normal": [
+        "NILM"
+      ],
+      "abnormal": [
+        "ASC-US",
+        "LSIL",
+        "ASC-H",
+        "HSIL",
+        "SCC"
+      ]
+    }
+  },
+  "mendeley_lbc": {
+    "role": "zero-shot external validation",
+    "original": {
+      "name": "Liquid based cytology pap smear images for multi-class diagnosis of cervical cancer",
+      "doi": "10.17632/zddtpgzv63.4",
+      "article_doi": "10.1016/j.dib.2020.105589",
+      "stated_images": 963,
+      "released_images": 962,
+      "image_size_wh": [
+        2048,
+        1536
+      ],
+      "released_counts": {
+        "NILM": 612,
+        "LSIL": 113,
+        "HSIL": 163,
+        "SCC": 74
+      }
+    },
+    "export": {
+      "name": "Mendeley-dataset",
+      "publisher": "Projet2 (Roboflow Universe)",
+      "version": 1,
+      "license": "CC BY 4.0",
+      "format": "COCO JSON",
+      "url": "https://universe.roboflow.com/projet2/mendeley-dataset-0cl0l",
+      "image_size_wh": [
+        640,
+        640
+      ]
+    },
+    "export_images": 959,
+    "export_partitions": {
+      "train": 671,
+      "valid": 191,
+      "test": 97
+    },
+    "boxes": {
+      "normal": 2425,
+      "abnormal": 2320
+    },
+    "images_with_abnormal_box": 351,
+    "released_but_not_in_export": [
+      "NL_5_ (15).jpg",
+      "NL_6_ (7).jpg",
+      "NL_9_ (15).jpg"
+    ],
+    "label_note": "Box labels follow the image diagnosis: abnormal boxes in all 350 LSIL/HSIL/SCC images and in 1 of 609 NILM images."
+  }
+}

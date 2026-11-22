@@ -1,0 +1,20 @@
+# Tested on Google Colab (NVIDIA L4): torch 2.14.1+cu130, segmentation-models-pytorch 0.6.0, albumentations 2.0.8.
+# Install the torch build that matches your CUDA version from https://pytorch.org first if needed.
+torch>=2.1
+torchvision
+segmentation-models-pytorch==0.6.0
+albumentations==2.0.8
+timm
+huggingface_hub
+numpy
+pandas
+scipy
+scikit-learn
+scikit-image
+opencv-python-headless
+matplotlib
+Pillow
+PyWavelets
+tqdm
+requests
+PyYAML

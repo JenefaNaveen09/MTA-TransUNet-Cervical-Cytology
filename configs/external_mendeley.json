@@ -1,0 +1,28 @@
+{
+  "_comment": "Zero-shot external validation on the Mendeley LBC Roboflow export (src/mendeley_external.py).",
+  "img_hw": [
+    384,
+    512
+  ],
+  "seed": 42,
+  "n_bootstrap": 1000,
+  "dhash_hamming_max": 6,
+  "models": {
+    "MTA-TransUNet (proposed)": "w_o_scSE_attention.pt",
+    "SegFormer": "SegFormer__MiT_B2.pt",
+    "U-Net++": "U_Net____R34.pt"
+  },
+  "preprocessing": "CLAHE on L channel (clip 2.0, 8x8 tiles), area resize to 384 x 512, ImageNet normalisation",
+  "tta": "mean of softmax over original, horizontal flip and vertical flip, at network resolution",
+  "cell_rule": "abnormal if mean P(abnormal) > mean P(normal) inside the reference box (boxes rescaled to 384 x 512)",
+  "image_score": "99.5th percentile of the abnormal-class probability map",
+  "statistics": "image-level (cluster) bootstrap 95% CI; paired bootstrap of AUC differences; Holm correction",
+  "few_shot_adaptation": {
+    "enabled_by": "MEN_ADAPT=1",
+    "fraction": 0.2,
+    "epochs": 15,
+    "batch": 4,
+    "lr": 0.0001,
+    "note": "Exploratory, not reported in the paper"
+  }
+}

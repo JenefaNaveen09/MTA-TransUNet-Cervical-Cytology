@@ -1,206 +1,151 @@
-# Cervical Cytology Image Segmentation
+# MTA-TransUNet: Joint Cell-Region Localisation and Abnormality Classification for Cervical Cytology
 
-**PyTorch research code for multiclass segmentation, model comparison, and external evaluation of cervical cytology images.**
+Code for the paper *"MTA-TransUNet: Joint Cell-Region Localisation and Abnormality Classification with Auxiliary Supervision for Cervical Cytology"* (J. Archpaul, V. Kandasamy, T. M. Thiyagu, T. Stephan).
 
-This repository contains a Jupyter notebook for preparing COCO-style annotations, training segmentation networks, evaluating predictions, and producing figures and tables. The workflow assigns background and annotation-derived foreground classes to image pixels. Separate notebook sections evaluate models labelled MTA-TransUNet, SegFormer, and U-Net++ on external SIPaKMeD and Mendeley data.
+MTA-TransUNet combines a MiT-B2 encoder, a five-block U-Net decoder, and an auxiliary image-level abnormality head. It predicts Background, Normal, and Abnormal regions in Pap smear images. The repository reproduces every experiment in the paper:
 
-## Contents
+- training of the proposed model and six baselines under one protocol
+- internal evaluation on CRIC Cervix: segmentation, cell-level and image-level classification, statistics, ablations, three-seed repeatability, robustness to six corruptions, and computational cost
+- the CRIC overlap audit
+- zero-shot external validation on Mendeley liquid-based cytology (LBC)
 
-| Path | Description |
-| --- | --- |
-| `Code/Cervical_new.ipynb` | Main notebook, including training, evaluation, visualization, and external studies |
-| `config_all_models.json` | Settings for the five segmentation baselines |
-| `config_unet.json`, `config_attention_unet.json` | Settings for the custom U-Net and Attention U-Net |
-| `config_unet_resnet34.json`, `config_unetpp_resnet34.json`, `config_deeplabv3plus_resnet34.json` | Settings for ResNet-34 encoder models |
-| `config_quick_smoke.json` | Reduced settings for checking the main workflow |
-| `config_sipakmed_external.json`, `config_mendeley_external.json` | External evaluation settings and checkpoint identifiers |
-| `figures/` | Supplied dataset, preprocessing, learning-curve, and evaluation artwork |
-| `logs/` | Saved configuration and two training-history CSV files |
+## Repository layout
 
-Paths above are relative to the outer `Code/` directory extracted from the archive. Place this README in that directory.
+```
+MTA-TransUNet/
+├── README.md
+├── LICENSE
+├── CITATION.cff
+├── requirements.txt
+├── configs/
+│   ├── default.json              settings of the reported runs
+│   ├── quick.json                smoke-test settings (not for results)
+│   ├── models.json               model registry: encoders, decoders, parameters, GFLOPs, checkpoint names
+│   ├── external_mendeley.json    external-validation protocol
+│   └── datasets.json             dataset sources, licences, and expected counts
+├── data/
+│   ├── README.md                 how to download and arrange the data
+│   └── splits/                   JSON manifests written by scripts/make_split_manifest.py
+├── notebooks/
+│   └── Cervical_MTA_TransUNet.ipynb   full notebook (outputs cleared)
+├── src/
+│   ├── run_pipeline.py           all internal experiments and the CRIC overlap audit
+│   ├── mendeley_external.py      zero-shot Mendeley LBC external validation
+│   └── reconcile_mendeley_roboflow.py   match the Roboflow export to the original Mendeley release
+├── scripts/
+│   ├── verify_data.py            check local data against the counts in the paper
+│   ├── make_split_manifest.py    write file lists, box counts and SHA-256 per split
+│   └── run_all.sh                run everything in order
+└── results/
+    └── README.md                 output files and what they contain
+```
 
-## Implemented workflow
-
-- Read training, validation, and test annotations from COCO-style JSON files.
-- Construct semantic masks from polygon annotations and derive class names from the annotated categories.
-- Apply optional contrast-limited adaptive histogram equalization (CLAHE), resizing, normalization, and training augmentation.
-- Train segmentation models with class-weighted cross-entropy and foreground Dice loss.
-- Use AdamW, learning-rate warmup followed by cosine scheduling, and early stopping based on validation Dice.
-- Evaluate class-specific and combined foreground segmentation, with optional horizontal and vertical flip test-time augmentation.
-- Generate quantitative summaries, paired comparisons, probability maps, qualitative overlays, and publication figures.
-
-### Main segmentation models
-
-| Model | Implementation |
-| --- | --- |
-| U-Net | Custom convolutional encoder and decoder |
-| Attention U-Net | Custom U-Net with additive attention gates |
-| U-Net (ResNet-34) | `segmentation_models_pytorch.Unet` |
-| U-Net++ (ResNet-34) | `segmentation_models_pytorch.UnetPlusPlus` |
-| DeepLabV3+ (ResNet-34) | `segmentation_models_pytorch.DeepLabV3Plus` |
-
-The default notebook configuration selects **U-Net (ResNet-34)**. Change `CFG["MODELS"]` to run other models or the complete baseline comparison.
+`src/run_pipeline.py` is generated from the notebook, and each `# %% [cell n]` block is one notebook cell. The script and the notebook run the same code.
 
 ## Installation
 
-Use a Python environment with Jupyter and PyTorch. A CUDA-capable GPU is preferable for training; the notebook selects CPU when CUDA is unavailable.
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Tested environment:** Google Colab with an NVIDIA L4 GPU, PyTorch 2.14.1+cu130, segmentation-models-pytorch 0.6.0, albumentations 2.0.8, and mixed-precision (FP16) training. Training all ten models (7 main + 3 ablations) and the three-seed runs takes several GPU-hours. A CPU is enough for `scripts/` and for checking the code with `configs/quick.json`.
+
+ImageNet encoder weights are downloaded automatically by segmentation-models-pytorch from the Hugging Face Hub on first use.
+
+## Data
+
+Both datasets are public. Download instructions and the expected folder layout are in [`data/README.md`](data/README.md).
+
+| Dataset | Role | Source |
+|---|---|---|
+| CRIC Cervix, Roboflow export v1 (399 images) | training, validation, internal test | [Lab 03 AI Center, Roboflow Universe](https://universe.roboflow.com/lab-03-ai-center-ev3hu/cervical-cancer-400-image-cric/dataset/1), CC BY 4.0; original data: Rezende et al., *Sci. Data* 2021, doi:10.1038/s41597-021-00933-8 |
+| Mendeley LBC, Roboflow export v1 (959 images) | zero-shot external validation | [Projet2, Roboflow Universe](https://universe.roboflow.com/projet2/mendeley-dataset-0cl0l), CC BY 4.0; original data: Hussain et al., *Data in Brief* 2020, doi:10.1016/j.dib.2020.105589; Mendeley Data doi:10.17632/zddtpgzv63.4 |
+| CRIC Cervix original release (figshare collection 4960286) | overlap audit only | downloaded automatically by `run_pipeline.py` |
+
+After downloading, check your copy:
 
 ```bash
-python -m venv .venv
+python scripts/verify_data.py --cric data/cric --mendeley data/Mendeley-dataset
+python scripts/make_split_manifest.py --cric data/cric --mendeley data/Mendeley-dataset --out data/splits
 ```
 
-Activate the environment:
+The partitions of both exports were used as provided, so the splits are fully defined by the public exports.
+
+## Running
+
+### Locally
 
 ```bash
-# Linux or macOS
-source .venv/bin/activate
-
-# Windows PowerShell
-.venv\Scripts\Activate.ps1
+export CERVIX_ROOT=data/cric CERVIX_CONFIG=configs/default.json
+python src/run_pipeline.py                     # train and evaluate all models, statistics, figures, overlap audit
+python src/mendeley_external.py                # zero-shot external validation (needs the trained checkpoints)
+LBC_DRIVE=data python src/reconcile_mendeley_roboflow.py   # optional: needs the original Mendeley release
 ```
 
-Install the packages imported by the notebook:
+Or run `bash scripts/run_all.sh`. For a quick check that the code runs end to end, use `CERVIX_CONFIG=configs/quick.json` (results are meaningless).
 
-```bash
-python -m pip install jupyter torch torchvision numpy pandas opencv-python matplotlib scipy scikit-learn scikit-image tqdm Pillow PyWavelets albumentations segmentation-models-pytorch
-```
+### Google Colab
 
-For external SIPaKMeD archives, install `py7zr` if a `7z` executable is unavailable:
+Put the data on Google Drive under `MyDrive/MTA-TransUNet/` (layout in `data/README.md`), open `notebooks/Cervical_MTA_TransUNet.ipynb`, and run all cells. The notebook mounts Drive automatically. Training resumes from the last saved epoch if the session stops.
 
-```bash
-python -m pip install py7zr
-```
+### Environment variables
 
-These are dependency names inferred from the code, rather than a version-pinned environment. Package versions are not supplied in the archive. The notebook uses recent PyTorch APIs, including `torch.utils.flop_counter.FlopCounterMode`, and external evaluation uses `smp.Segformer`; confirm that the installed versions provide these APIs. ImageNet encoder initialization may require downloading pretrained weights.
+| Variable | Default | Purpose |
+|---|---|---|
+| `CERVIX_ROOT` | `data/cric` (Colab: `/content/gdrive/MyDrive/MTA-TransUNet/cervical`) | CRIC export folder; results go to `$CERVIX_ROOT/results_q1_proposed` |
+| `CERVIX_CONFIG` | none | JSON file that overrides the settings in notebook cell 1 |
+| `CERVIX_QUICK` | `0` | `1` = built-in smoke-test settings |
+| `CERVIX_MEN_DRIVE` | `<parent of CERVIX_ROOT>/Mendeley-dataset` | Mendeley Roboflow export (folder or zip) |
+| `MEN_ADAPT` | `0` | `1` = also run the exploratory few-shot adaptation (not in the paper) |
+| `MEN_EPOCHS` | `15` | epochs for the few-shot adaptation |
+| `CERVIX_EXT_IMG`, `CERVIX_EXT_ANN`, `CERVIX_EXT_FORMAT` | figshare download | CRIC overlap-audit images, annotations, and format |
+| `LBC_DRIVE`, `LBC_RAW_DIR`, `LBC_ORIG_DIR`, `LBC_RF_DIR`, `LBC_TAB_DIR` | see script | paths for `reconcile_mendeley_roboflow.py` |
 
-## Dataset preparation
+## Method summary
 
-The primary images and annotation files are not included in the archive. Arrange the dataset as follows:
+| Item | Setting |
+|---|---|
+| Input | CLAHE on the L channel (clip 2.0, 8 × 8 tiles), area resize to 384 × 512, ImageNet normalisation |
+| Proposed model | MiT-B2 encoder (ImageNet), U-Net decoder (256/128/64/32/16), auxiliary image head (dropout 0.2) |
+| Loss | weighted cross-entropy (weights ∝ 1/√pixel frequency, normalised to mean 1, capped at 10) + soft Dice, plus 0.2 × binary cross-entropy for the auxiliary head |
+| Optimisation | AdamW, lr 3 × 10⁻⁴, weight decay 10⁻⁴, batch 8, FP16, gradient clipping at norm 1.0, 3-epoch warm-up then cosine decay, 40 epochs, early stopping after 10 epochs without validation mDice improvement |
+| Augmentation | horizontal and vertical flips (p 0.5 each); affine with scale 0.9–1.1, translation ±5 %, rotation ±20° (p 0.5); hue/saturation/value (p 0.5); brightness/contrast ±15 % (p 0.5); Gaussian blur (p 0.1); HED stain jitter (p 0.5); applied to all models |
+| Inference | mean of softmax maps over the original, horizontal-flip, and vertical-flip views at network resolution, then one bilinear resize to the original size (internal) |
+| Cell score | mean class probability inside each reference box; abnormal if mean P(abnormal) > mean P(normal) |
+| Image score | 99.5th percentile of the abnormal-probability map |
+| Statistics | bootstrap 95 % CIs (2,000 internal, 1,000 external), Wilcoxon signed-rank with Holm correction and rank-biserial effect size, Friedman and Nemenyi tests, paired bootstrap of AUC differences |
+| Seeds | 42 (main run); 42, 7, 2024 (repeatability) |
 
-| Directory | Required contents |
-| --- | --- |
-| `<dataset-root>/train/` | Training images and COCO annotation JSON |
-| `<dataset-root>/valid/` | Validation images and COCO annotation JSON |
-| `<dataset-root>/test/` | Test images and COCO annotation JSON |
-
-Place image files directly inside their split directory. The loader resolves each annotation filename by its basename.
-
-For each split, the loader prioritizes `_combined_annotations.json`, then `_annotations.coco.json`, and otherwise selects the first JSON file in sorted order. Annotation JSON must contain `images`, `annotations`, and `categories`. Image records should include `id`, `file_name`, `width`, and `height`; annotation records need `image_id`, `category_id`, and `bbox`, with polygon `segmentation` where available.
-
-**Mask interpretation:** polygon annotations are rasterized as class masks. Empty segmentation fields and RLE annotations fall back to filled bounding boxes; RLE masks are not decoded. Metrics from these fallback masks measure agreement with rectangular labels and should be interpreted accordingly. Later foreground classes overwrite earlier classes where annotations overlap.
-
-## Run the main experiment
-
-1. Open `Code/Cervical_new.ipynb` in Jupyter or upload it to Google Colab.
-2. Before the first notebook cell, set the dataset location:
-
-   ```python
-   import os
-   os.environ["CERVIX_ROOT"] = "/absolute/path/to/cervical"
-   ```
-
-   In Colab, use the appropriate mounted Google Drive path. The default path is `/content/gdrive/MyDrive/cervical`.
-
-3. Review the `CFG` dictionary, especially `DATA_ROOT`, `MODELS`, `ENCODER_WEIGHTS`, and `RESUME`.
-4. Execute the main workflow cells in order. Run external-study cells separately after providing their datasets and checkpoints.
-5. Inspect the saved configuration, training history, generated masks, and evaluation tables before comparing results.
-
-### Configuration files
-
-The supplied JSON files record experiment settings. **The notebook does not automatically load these files.** To use one, add a configuration-loading block after the initial `CFG` definition and quick-mode update, but before `CFG["OUT_DIR"]` and `DIRS` are created:
-
-```python
-with open("config_all_models.json", "r", encoding="utf-8") as f:
-    CFG.update(json.load(f))
-
-# Override machine-specific paths after loading the supplied configuration.
-CFG["DATA_ROOT"] = os.environ["CERVIX_ROOT"]
-```
-
-Use a path relative to the notebook kernel's working directory. The JSON files contain author-specific Google Drive paths that must be changed for a new environment. External JSON files document settings for their separate sections; those sections also require editing their own variables.
-
-### Default training settings
-
-| Setting | Default |
-| --- | --- |
-| Input long side | 512 pixels |
-| Batch size | 8 |
-| Maximum epochs | 60 |
-| Initial learning rate | 0.0003 |
-| Weight decay | 0.0001 |
-| Warmup | 3 epochs |
-| Early-stopping patience | 15 epochs |
-| Random seed | 42 |
-| Cross-entropy / Dice weights | 1.0 / 1.0 |
-| CLAHE | Enabled |
-| Flip test-time augmentation | Enabled |
-| Encoder initialization | ImageNet for the supported encoder models |
-| Bootstrap draws | 2,000 |
-
-The short input dimension is calculated from the median dataset aspect ratio and rounded to a multiple of 32.
-
-### Quick workflow check
-
-Before running the first notebook cell:
-
-```python
-import os
-os.environ["CERVIX_ROOT"] = "/absolute/path/to/cervical"
-os.environ["CERVIX_QUICK"] = "1"
-```
-
-Quick mode uses a 128-pixel input long side, batch size 4, three training epochs, no pretrained encoder weights, and reduced sampling. It still requires valid dataset splits. Use it to check data loading and execution, rather than to reproduce full experiment results. Remove this setting or set it to `"0"` for full training.
-
-## Outputs and evaluation
-
-Main-workflow outputs are written to `<dataset-root>/results_q1/`:
-
-| Subdirectory | Generated artifacts |
-| --- | --- |
-| `checkpoints/` | Saved model checkpoints |
-| `logs/` | Configuration and training histories |
-| `masks/` | Rasterized annotation masks for each split |
-| `tables/` | Dataset summaries, evaluation results, statistical comparisons, and computational-cost summaries |
-| `figures/` | Dataset plots, learning curves, Dice distributions, prediction comparisons, probability maps, ROC/PR curves, and confusion matrices |
-
-The main evaluation includes Dice, IoU, precision, recall, specificity, foreground accuracy, and foreground HD95. Pixel-level ROC and precision-recall curves use sampled pixels. The notebook includes bootstrap summaries and paired Wilcoxon signed-rank comparisons with Holm adjustment when multiple models are evaluated.
-
-The figure export function writes PDF, 300 dpi PNG, and 600 dpi LZW-compressed TIFF. Existing figures and histories are supplied artifacts; reproducing them requires the corresponding data, settings, and model runs. No performance values are asserted in this README because the archive does not include a complete numerical results table for all studies.
-
-## External evaluation
-
-Separate notebook sections contain SIPaKMeD full-field evaluation and Mendeley evaluation, including zero-shot and fine-tuning routines.
-
-| Requirement | SIPaKMeD | Mendeley |
-| --- | --- | --- |
-| Dataset environment variable | `CERVIX_SPK_DRIVE` | `CERVIX_MEN_DRIVE` |
-| Checkpoint directory | `<dataset-root>/results_q1_proposed/checkpoints/` | `<dataset-root>/results_q1_proposed/checkpoints/` |
-| Model identifiers | `w_o_scSE_attention`, `SegFormer__MiT_B2`, `U_Net____R34` | Same identifiers |
-
-The external loader expects `.pt` files containing a `model` state dictionary. These checkpoints are **not included** in the supplied archive. Main baseline training writes to `results_q1/` and does not produce all checkpoints expected by the external sections.
-
-In the external code, the label **MTA-TransUNet (ours)** refers to a wrapper around `smp.Unet("mit_b2", ...)` with a three-class segmentation output and an auxiliary classification head. SegFormer uses a MiT-B2 encoder, and U-Net++ uses ResNet-34. The supplied main training workflow does not train the model labelled MTA-TransUNet. Match the external constructor and checkpoint architecture before running these sections.
-
-SIPaKMeD processing uses full-field images with contour `.dat` files. The code maps Koilocytotic and Dyskeratotic classes to abnormal labels. Mendeley processing has separate annotation-parsing routines. Inspect the relevant external cell for its expected dataset layout and label mapping.
+All baselines use the same data, preprocessing, augmentation, loss, schedule, and checkpoint selection. Encoders, decoders, parameter counts, and GFLOPs are listed in `configs/models.json`.
 
 ## Reproducibility notes
 
-- Record the Python, PyTorch, segmentation-models-pytorch, and Albumentations versions, hardware, and complete configuration for each run.
-- Set `RESUME=False` and use a separate output directory when starting an independent experiment. With `RESUME=True`, existing checkpoints can cause training to be skipped.
-- The default seed is 42, but cuDNN deterministic mode is disabled and benchmarking is enabled. Identical numerical results across environments are not guaranteed.
-- The notebook caches resized images and masks in RAM. Reduce input size or use a smaller dataset for initial checks if memory is limited.
-- External sections require additional data and compatible trained weights. They should not be treated as an unconditional continuation of the main baseline run.
+- **Checkpoint name of the proposed model.** It was trained under an earlier name, so its checkpoint file is `w_o_scSE_attention.pt`, and the `+ scSE attention` ablation is stored as `MTA_TransUNet.pt`. The mapping is in `CKPT_ALIAS` (notebook cell 9) and `configs/models.json`.
+- **Determinism.** Seeds are fixed, but `cudnn.benchmark=True` and mixed precision make GPU runs not bit-exact. Expect small differences in the last decimal places. For bit-exact reruns, set `torch.backends.cudnn.deterministic = True` in cell 1, which makes training slower.
+- **Training annotation file.** The loader uses `_combined_annotations.json` if a split folder contains one, otherwise `_annotations.coco.json`. Exact duplicate annotations are removed, so both give the same 4,233 training boxes. `scripts/verify_data.py` checks this.
+- **Mendeley external labels.** In the Roboflow export, the box labels follow the image diagnosis: abnormal boxes appear in all 350 LSIL, HSIL, and SCC images and in 1 of 609 NILM images. Cell-level external results therefore largely reflect image-level discrimination. Three released NILM images (NL\_5\_ (15), NL\_6\_ (7), NL\_9\_ (15)) were not annotated in the export.
+- **Optional analyses not in the paper.** These are switched off by default: image-level evaluation on the original Mendeley release (`RUN_LBC_ORIGINAL`) and few-shot adaptation (`MEN_ADAPT=1`).
+- **Figure 12.** It is produced twice, in cells 26 and 27, as in the original notebook. The second version (bar chart) overwrites the first.
 
-## Troubleshooting
+## Citation
 
-| Issue | Check |
-| --- | --- |
-| Missing COCO JSON | Confirm the split directory and annotation filename |
-| Missing image files | Confirm image basenames and their placement inside each split |
-| Repeated image-ID error | Use the original per-split COCO file when merged annotation blocks cannot be linked safely |
-| CUDA memory error | Reduce `BATCH_SIZE` or `LONG_SIDE` |
-| Existing training unexpectedly skipped | Review `RESUME` and the checkpoint directory |
-| Missing external checkpoint | Supply the required `.pt` file in `results_q1_proposed/checkpoints/` |
-| State-dictionary mismatch | Match the checkpoint to its exact model constructor and package version |
-| External archive extraction error | Provide `7z` or install `py7zr` |
+```bibtex
+@article{archpaul_mtatransunet,
+  title   = {MTA-TransUNet: Joint Cell-Region Localisation and Abnormality Classification with Auxiliary Supervision for Cervical Cytology},
+  author  = {Archpaul, Jenefa and Kandasamy, Vidhya and Thiyagu, T. M. and Stephan, Thompson},
+  journal = {[Journal]},
+  year    = {[Year]},
+  doi     = {[DOI]}
+}
+```
 
+Please also cite the datasets (CRIC: Rezende et al., 2021; Mendeley LBC: Hussain et al., 2020) and the two Roboflow exports listed above.
+
+## Licence
+
+The code is released under the MIT License (see `LICENSE`). The datasets keep their own licences: the Roboflow exports are CC BY 4.0, and the original CRIC and Mendeley releases are under the terms given in their repositories. The data are not redistributed here.
+
+## Contact
+
+Thompson Stephan (corresponding author): thompsoncse@gmail.com

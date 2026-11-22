@@ -1,0 +1,15 @@
+{
+  "_comment": "Smoke test only (same as CERVIX_QUICK=1). Not for reported results.",
+  "LONG_SIDE": 128,
+  "BATCH_SIZE": 4,
+  "EPOCHS": 2,
+  "WARMUP_EPOCHS": 1,
+  "PATIENCE": 5,
+  "NUM_WORKERS": 0,
+  "ENCODER_WEIGHTS": null,
+  "N_BOOT": 200,
+  "PIXELS_PER_IMAGE": 2000,
+  "RESUME": false,
+  "RUN_ABLATION": false,
+  "RUN_ROBUSTNESS": false
+}

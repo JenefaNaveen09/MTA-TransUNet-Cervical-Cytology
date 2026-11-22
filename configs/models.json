@@ -1,0 +1,141 @@
+{
+  "_comment": "Model registry (notebook cell 9). Checkpoints are saved as <checkpoint>.pt in results_q1_proposed/checkpoints. Params and GFLOPs at 384 x 512 input, batch 1 (GFLOPs measured for main models only). The proposed model's checkpoint keeps its legacy file name 'w_o_scSE_attention'.",
+  "num_classes": 3,
+  "classes": [
+    "Background",
+    "normal",
+    "abnormal"
+  ],
+  "input_hw": [
+    384,
+    512
+  ],
+  "encoder_weights": "imagenet",
+  "auxiliary_head": {
+    "classes": 1,
+    "dropout": 0.2,
+    "loss_weight": 0.2
+  },
+  "models": [
+    {
+      "name": "U-Net (R34)",
+      "short": "U-Net",
+      "role": "baseline",
+      "builder": "smp.Unet",
+      "encoder": "resnet34",
+      "decoder": "U-Net decoder, 256/128/64/32/16",
+      "params_M": 24.44,
+      "gflops": 47.0,
+      "checkpoint": "U_Net__R34.pt",
+      "reference_key": "b1"
+    },
+    {
+      "name": "U-Net++ (R34)",
+      "short": "U-Net++",
+      "role": "baseline",
+      "builder": "smp.UnetPlusPlus",
+      "encoder": "resnet34",
+      "decoder": "Nested dense skip decoder, 256/128/64/32/16",
+      "params_M": 26.08,
+      "gflops": 110.42,
+      "checkpoint": "U_Net____R34.pt",
+      "reference_key": "b2"
+    },
+    {
+      "name": "DeepLabV3+ (R34)",
+      "short": "DeepLabV3+",
+      "role": "baseline",
+      "builder": "smp.DeepLabV3Plus",
+      "encoder": "resnet34",
+      "decoder": "ASPP (rates 12, 24, 36), output stride 16, 256 channels",
+      "params_M": 22.44,
+      "gflops": 47.32,
+      "checkpoint": "DeepLabV3___R34.pt",
+      "reference_key": "b3"
+    },
+    {
+      "name": "MA-Net (R34)",
+      "short": "MA-Net",
+      "role": "baseline",
+      "builder": "smp.MAnet",
+      "encoder": "resnet34",
+      "decoder": "Position and multi-scale fusion attention, PAB 64",
+      "params_M": 31.78,
+      "gflops": 50.03,
+      "checkpoint": "MA_Net__R34.pt",
+      "reference_key": "b4"
+    },
+    {
+      "name": "SegFormer (MiT-B2)",
+      "short": "SegFormer",
+      "role": "baseline",
+      "builder": "smp.Segformer",
+      "encoder": "mit_b2",
+      "decoder": "All-MLP decoder, 256 channels",
+      "params_M": 24.72,
+      "gflops": 36.13,
+      "checkpoint": "SegFormer__MiT_B2.pt",
+      "reference_key": "b6"
+    },
+    {
+      "name": "UPerNet (ConvNeXt-T)",
+      "short": "UPerNet",
+      "role": "baseline",
+      "builder": "smp.UPerNet",
+      "encoder": "tu-convnext_tiny",
+      "decoder": "Pyramid pooling + FPN, 256 channels",
+      "params_M": 37.04,
+      "gflops": 114.6,
+      "checkpoint": "UPerNet__ConvNeXt_T.pt",
+      "reference_key": "b7"
+    },
+    {
+      "name": "MTA-TransUNet",
+      "short": "MTA-TransUNet (proposed)",
+      "role": "proposed",
+      "builder": "MultiTaskSegNet(attention=False, aux=True)",
+      "encoder": "mit_b2",
+      "decoder": "U-Net decoder + auxiliary image head",
+      "params_M": 27.48,
+      "gflops": 45.6,
+      "checkpoint": "w_o_scSE_attention.pt",
+      "reference_key": null
+    },
+    {
+      "name": "+ scSE attention",
+      "short": "+ scSE attention",
+      "role": "ablation",
+      "builder": "MultiTaskSegNet(attention=True, aux=True)",
+      "encoder": "mit_b2",
+      "decoder": "U-Net decoder with scSE + auxiliary image head",
+      "params_M": 27.6,
+      "gflops": null,
+      "checkpoint": "MTA_TransUNet.pt",
+      "reference_key": null
+    },
+    {
+      "name": "− auxiliary head",
+      "short": "− auxiliary head",
+      "role": "ablation",
+      "builder": "MultiTaskSegNet(attention=False, aux=False)",
+      "encoder": "mit_b2",
+      "decoder": "U-Net decoder, no auxiliary head",
+      "params_M": 27.5,
+      "gflops": null,
+      "checkpoint": "minus_auxiliary_head.pt",
+      "reference_key": null
+    },
+    {
+      "name": "− transformer encoder",
+      "short": "− transformer encoder",
+      "role": "ablation",
+      "builder": "MultiTaskSegNet(attention=False, aux=True)",
+      "encoder": "resnet34",
+      "decoder": "U-Net decoder + auxiliary image head",
+      "params_M": 24.4,
+      "gflops": null,
+      "checkpoint": "minus_transformer_encoder.pt",
+      "reference_key": null
+    }
+  ]
+}

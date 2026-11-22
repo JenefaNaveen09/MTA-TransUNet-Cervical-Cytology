@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "MTA-TransUNet: Joint Cell-Region Localisation and Abnormality Classification with Auxiliary Supervision for Cervical Cytology"
+type: software
+authors:
+  - family-names: Archpaul
+    given-names: Jenefa
+    affiliation: "Karunya Institute of Technology and Sciences"
+  - family-names: Kandasamy
+    given-names: Vidhya
+    affiliation: "Karunya Institute of Technology and Sciences"
+  - family-names: Thiyagu
+    given-names: T. M.
+    affiliation: "Vel Tech Rangarajan Dr. Sagunthala R&D Institute of Science and Technology"
+  - family-names: Stephan
+    given-names: Thompson
+    affiliation: "Gulf Medical University"
+    email: thompsoncse@gmail.com
+license: MIT
+keywords: [cervical cytology, Pap smear, semantic segmentation, multi-task learning, vision transformer]
